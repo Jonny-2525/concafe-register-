@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="会計">
+<title>コンカフェ 会計</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#fff9fb;
+  --surface:#ffffff;
+  --surface2:#fdf0f5;
+  --border:#f0d0dd;
+  --accent:#d4537e;
+  --accent-light:#fbeaf0;
+  --accent-deep:#993556;
+  --text:#2a1a22;
+  --muted:#9a7080;
+  --green:#3B6D11;
+  --green-bg:#EAF3DE;
+}
+html,body{min-height:100%;background:var(--bg);font-family:'Zen Kaku Gothic New',sans-serif;color:var(--text)}
+body{padding-bottom:env(safe-area-inset-bottom)}
+
+header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:14px 16px 12px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:10;
+}
+header .logo{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
+header h1{font-size:17px;font-weight:700;letter-spacing:.02em;color:var(--text)}
+header .reset{margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit}
+header .reset:active{background:var(--surface2)}
+
+.main{padding:12px;display:flex;flex-direction:column;gap:10px;max-width:540px;margin:0 auto}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px}
+.card-title{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin-bottom:12px}
+
+.field-row{display:flex;align-items:center;gap:8px;min-height:40px;margin-bottom:8px}
+.field-row:last-child{margin-bottom:0}
+.field-row .lbl{font-size:14px;color:var(--text);flex:1;min-width:0;line-height:1.3}
+.field-row .unit{font-size:12px;color:var(--muted);flex-shrink:0}
+
+input[type=number],input[type=text]{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-family:inherit;
+  font-size:15px;
+  color:var(--text);
+  padding:8px 10px;
+  outline:none;
+  -webkit-appearance:none;
+}
+input[type=number]{width:88px;text-align:right}
+input[type=text]{flex:1;min-width:0}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--accent);background:#fff}
+
+.ext-row{display:flex;align-items:center;gap:6px}
+.ext-row input[type=number]{width:56px}
+.ext-row .x{font-size:13px;color:var(--muted);flex-shrink:0}
+.ext-row input.unit-input{width:80px}
+
+.multi-item{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.multi-item input[type=text]{flex:1;font-size:13px}
+.multi-item input[type=number]{width:76px;font-size:13px}
+.multi-item .x{font-size:12px;color:var(--muted);flex-shrink:0}
+.multi-item .qty{width:44px}
+.multi-item .del{background:none;border:none;color:#e08;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
+
+.add-btn{
+  width:100%;background:transparent;border:1px dashed var(--border);
+  border-radius:10px;padding:9px;font-size:13px;color:var(--muted);
+  cursor:pointer;font-family:inherit;margin-top:4px;
+}
+.add-btn:active{background:var(--surface2)}
+
+.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rate-cell .lbl2{font-size:11px;color:var(--muted);margin-bottom:5px}
+.rate-cell{display:flex;flex-direction:column}
+.rate-cell input{width:100%;text-align:center}
+
+.receipt{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.receipt-head{background:var(--accent);padding:12px 16px;display:flex;align-items:center;gap:8px}
+.receipt-head span{color:#fff;font-size:13px;font-weight:700;letter-spacing:.04em}
+.receipt-body{padding:12px 16px}
+.r-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--muted)}
+.r-row.val{color:var(--text)}
+.r-row.zero{opacity:.4}
+.r-divider{border:none;border-top:1px dashed var(--border);margin:8px 0}
+.r-grand{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 2px}
+.r-grand .gl{font-size:15px;font-weight:700;color:var(--text)}
+.r-grand .gv{font-size:28px;font-weight:700;color:var(--accent)}
+
+.note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✦</div>
+  <h1>コンカフェ 会計</h1>
+  <button class="reset" onclick="clearAll()">リセット</button>
+</header>
+
+<div class="main">
+
+  <!-- 基本料金 -->
+  <div class="card">
+    <div class="card-title">基本料金</div>
+    <div class="field-row">
+      <span class="lbl">セット料金（1人）</span>
+      <input type="number" id="set_fee" value="0" min="0" step="100" inputmode="numeric" oninput="calc()">
+      <span class="unit">円</span>
+    </div>
+    <div class="field-row">
+      <span class="lbl">何名様</span>
+      <div class="ext-row">
+        <input type="number" id="set_count" value="1" min="1" step="1" inputmode="numeric" oninput="calc()" style="width:56px">
+        <span class="x">名</span>
+      </div>
+    </div>
+    <div class="field-row" style="background:var(--surface2);border-radius:10px;padding:6px 10px;margin-top:2px">
+      <span class="lbl" style="font-size:13px;color:var(--muted)">セット小計</span>
+      <span id="set_subtotal" style="font-size:14px;font-weight:700;color:var(--accent)">¥0</span>
+    </div>
+    <div class="field-row" style="margin-top:4px">
+      <span class="lbl">指名料</span>
+      <input type="number" id="shime_fee" value="0" min="0" step="100" inputmode="numeric" oninput="calc()">
+      <span class="unit">円</span>
+    </div>
+    <div class="field-row">
+      <span class="lbl">延長</span>
+      <div class="ext-row">
+        <input type="number" id="ext_count" value="0" min="0" step="1" inputmode="numeric" oninput="calc()">
+        <span class="x">セット ×</span>
+        <input type="number" id="ext_unit" class="unit-input" value="1000" min="0" step="100" inputmode="numeric" oninput="calc()">
+        <span class="unit">円</span>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="lbl" style="font-size:13px;color:var(--muted)">延長　何名様</span>
+      <div class="ext-row">
+        <input type="number" id="ext_persons" value="1" min="1" step="1" inputmode="numeric" readonly tabindex="-1"
+          style="width:56px;background:var(--surface2);color:var(--muted);border-color:var(--border);opacity:.55;cursor:not-allowed">
+        <span class="x" style="color:var(--muted)">名</span>
+      </div>
+    </div>
+    <div class="field-row" style="background:var(--surface2);border-radius:10px;padding:6px 10px;margin-top:2px">
+      <span class="lbl" style="font-size:13px;color:var(--muted)">延長小計</span>
+      <span id="ext_subtotal" style="font-size:14px;font-weight:700;color:var(--accent)">¥0</span>
+    </div>
+  </div>
+
+  <!-- サービスセット -->
+  <div class="card">
+    <div class="card-title">サービスセット</div>
+    <p class="note" style="margin-bottom:12px">初回・早時間・ポイント特典など通常より安いセット料金</p>
+    <div id="sset_rows"></div>
+    <button class="add-btn" onclick="addSset()">＋ サービスセットを追加</button>
+  </div>
+
+  <!-- キャストドリンク -->
+  <div class="card">
+    <div class="card-title">キャストドリンク</div>
+    <div id="cast_drinks"></div>
+    <button class="add-btn" onclick="addItem('cast')">＋ 追加</button>
+  </div>
+
+  <!-- 注文ドリンク -->
+  <div class="card">
+    <div class="card-title">注文ドリンク</div>
+    <div id="order_drinks"></div>
+    <button class="add-btn" onclick="addItem('order')">＋ 追加</button>
+  </div>
+
+  <!-- チェキ -->
+  <div class="card">
+    <div class="card-title">チェキ</div>
+    <div id="chekis"></div>
+    <button class="add-btn" onclick="addItem('cheki')">＋ 追加</button>
+  </div>
+
+  <!-- その他ご注文 -->
+  <div class="card">
+    <div class="card-title">その他ご注文</div>
+    <div id="foods"></div>
+    <button class="add-btn" onclick="addItem('food')">＋ 追加</button>
+  </div>
+
+  <!-- 料率 -->
+  <div class="card">
+    <div class="card-title">サービス料 / 消費税</div>
+    <div class="rate-grid">
+      <div class="rate-cell">
+        <div class="lbl2">サービス料（%）</div>
+        <input type="number" id="service_rate" value="10" min="0" max="100" step="1" inputmode="numeric" oninput="calc()">
+      </div>
+      <div class="rate-cell">
+        <div class="lbl2">消費税（%）</div>
+        <input type="number" id="tax_rate" value="10" min="0" max="100" step="1" inputmode="numeric" oninput="calc()">
+      </div>
+    </div>
+    <p class="note">小計 → サービス料加算 → 消費税の順で計算します</p>
+  </div>
+
+  <!-- レシート -->
+  <div class="receipt">
+    <div class="receipt-head"><span>お会計明細</span></div>
+    <div class="receipt-body">
+      <div class="r-row val" id="r_sset"><span>サービスセット</span><span>¥0</span></div>
+      <div class="r-row val" id="r_set"><span>セット料金</span><span>¥0</span></div>
+      <div class="r-row val" id="r_shime"><span>指名料</span><span>¥0</span></div>
+      <div class="r-row val" id="r_ext"><span>延長料金</span><span>¥0</span></div>
+      <div class="r-row val" id="r_cast"><span>キャストドリンク</span><span>¥0</span></div>
+      <div class="r-row val" id="r_order"><span>注文ドリンク</span><span>¥0</span></div>
+      <div class="r-row val" id="r_cheki"><span>チェキ</span><span>¥0</span></div>
+      <div class="r-row val" id="r_food"><span>その他ご注文</span><span>¥0</span></div>
+      <hr class="r-divider">
+      <div class="r-row"><span>小計</span><span id="t_sub">¥0</span></div>
+      <div class="r-row"><span>サービス料（<span id="sr_lbl">10</span>%）</span><span id="t_service">¥0</span></div>
+      <div class="r-row"><span>消費税（<span id="tr_lbl">10</span>%）</span><span id="t_tax">¥0</span></div>
+      <hr class="r-divider">
+      <div class="r-grand">
+        <span class="gl">合計</span>
+        <span class="gv" id="t_grand">¥0</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+var ssets=[];
+var lists={cast:[],order:[],food:[],cheki:[]};
+var seq=0;
+function uid(){return 's'+(++seq)}
+var containers={cast:'cast_drinks',order:'order_drinks',food:'foods',cheki:'chekis'};
+
+function addSset(){
+  ssets.push({id:uid(),name:'',price:0,count:1});
+  renderSsets();calc();
+}
+function renderSsets(){
+  var c=document.getElementById('sset_rows');
+  c.innerHTML='';
+  ssets.forEach(function(it){
+    var wrap=document.createElement('div');
+    wrap.style.cssText='border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--surface2)';
+    var r0=document.createElement('div');
+    r0.className='field-row';r0.style.marginBottom='6px';
+    var nameInput=document.createElement('input');
+    nameInput.type='text';nameInput.placeholder='例：初回セット';nameInput.value=it.name;nameInput.style.fontSize='13px';
+    nameInput.oninput=function(){updSset(it.id,'name',this.value)};
+    var delBtn=document.createElement('button');
+    delBtn.textContent='×';delBtn.style.cssText='background:none;border:none;color:#e08;font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0';
+    delBtn.onclick=function(){delSset(it.id)};
+    var lbl0=document.createElement('span');lbl0.className='lbl';lbl0.style.fontSize='13px';lbl0.textContent='名称';
+    r0.appendChild(lbl0);r0.appendChild(nameInput);r0.appendChild(delBtn);
+
+    var r1=document.createElement('div');
+    r1.className='field-row';r1.style.marginBottom='6px';
+    var lbl1=document.createElement('span');lbl1.className='lbl';lbl1.style.fontSize='13px';lbl1.textContent='料金（1人）';
+    var priceInput=document.createElement('input');
+    priceInput.type='number';priceInput.value=it.price;priceInput.min='0';priceInput.step='100';priceInput.setAttribute('inputmode','numeric');
+    priceInput.style.cssText='width:88px;text-align:right';
+    priceInput.oninput=function(){updSset(it.id,'price',+this.value)};
+    var u1=document.createElement('span');u1.className='unit';u1.textContent='円';
+    r1.appendChild(lbl1);r1.appendChild(priceInput);r1.appendChild(u1);
+
+    var r2=document.createElement('div');
+    r2.className='field-row';r2.style.marginBottom='6px';
+    var lbl2=document.createElement('span');lbl2.className='lbl';lbl2.style.fontSize='13px';lbl2.textContent='何名様';
+    var countInput=document.createElement('input');
+    countInput.type='number';countInput.value=it.count;countInput.min='1';countInput.step='1';countInput.setAttribute('inputmode','numeric');
+    countInput.style.cssText='width:56px;text-align:right';
+    countInput.oninput=function(){updSset(it.id,'count',+this.value)};
+    var u2=document.createElement('span');u2.className='unit';u2.textContent='名';
+    r2.appendChild(lbl2);r2.appendChild(countInput);r2.appendChild(u2);
+
+    var r3=document.createElement('div');
+    r3.style.cssText='display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-radius:8px;padding:5px 10px;margin-top:2px';
+    var subLbl=document.createElement('span');subLbl.style.cssText='font-size:12px;color:var(--muted)';subLbl.textContent='小計';
+    var subVal=document.createElement('span');subVal.id='sset_sub_'+it.id;subVal.style.cssText='font-size:14px;font-weight:700;color:var(--accent)';subVal.textContent=fmt(it.price*it.count);
+    r3.appendChild(subLbl);r3.appendChild(subVal);
+
+    wrap.appendChild(r0);wrap.appendChild(r1);wrap.appendChild(r2);wrap.appendChild(r3);
+    c.appendChild(wrap);
+  });
+}
+function updSset(id,field,val){
+  var it=ssets.find(function(x){return x.id===id});
+  if(it){
+    it[field]=val;
+    var sub=document.getElementById('sset_sub_'+id);
+    if(sub) sub.textContent=fmt(it.price*it.count);
+    calc();
+  }
+}
+function delSset(id){
+  ssets=ssets.filter(function(x){return x.id!==id});
+  renderSsets();calc();
+}
+
+function addItem(type){
+  var defaultPrice=(type==='cheki'||type==='cast')?1000:500;
+  lists[type].push({id:uid(),name:'',price:defaultPrice,qty:1});
+  render(type);calc();
+}
+function render(type){
+  var c=document.getElementById(containers[type]);
+  c.innerHTML='';
+  lists[type].forEach(function(it){
+    var d=document.createElement('div');
+    d.className='multi-item';
+    var nameIn=document.createElement('input');nameIn.type='text';nameIn.placeholder='名称';nameIn.value=it.name;nameIn.style.fontSize='13px';
+    nameIn.oninput=function(){upd(type,it.id,'name',this.value)};
+    var priceIn=document.createElement('input');priceIn.type='number';priceIn.value=it.price;priceIn.min='0';priceIn.step='100';priceIn.setAttribute('inputmode','numeric');priceIn.style.cssText='width:76px;font-size:13px;text-align:right';
+    priceIn.oninput=function(){upd(type,it.id,'price',+this.value)};
+    var x=document.createElement('span');x.className='x';x.textContent='×';
+    var qtyIn=document.createElement('input');qtyIn.type='number';qtyIn.value=it.qty;qtyIn.min='1';qtyIn.step='1';qtyIn.setAttribute('inputmode','numeric');qtyIn.className='qty';
+    qtyIn.oninput=function(){upd(type,it.id,'qty',+this.value)};
+    var delBtn=document.createElement('button');delBtn.className='del';delBtn.textContent='×';
+    delBtn.onclick=function(){del(type,it.id)};
+    d.appendChild(nameIn);d.appendChild(priceIn);d.appendChild(x);d.appendChild(qtyIn);d.appendChild(delBtn);
+    c.appendChild(d);
+  });
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}
+function upd(type,id,field,val){
+  var it=lists[type].find(function(x){return x.id===id});
+  if(it){it[field]=val;calc();}
+}
+function del(type,id){
+  lists[type]=lists[type].filter(function(x){return x.id!==id});
+  render(type);calc();
+}
+
+function gv(id){return parseFloat(document.getElementById(id).value)||0}
+function fmt(n){return '¥'+Math.round(n).toLocaleString('ja-JP')}
+function setRow(id,val){
+  var el=document.getElementById(id);
+  var sp=el.querySelectorAll('span');
+  sp[1].textContent=fmt(val);
+  if(val===0){el.classList.add('zero')}else{el.classList.remove('zero')}
+}
+
+function calc(){
+  var set_unit=gv('set_fee');
+  var set_num=Math.max(1,gv('set_count'));
+  var set=set_unit*set_num;
+  var shime=gv('shime_fee');
+  var ext_unit=gv('ext_unit');
+  var ext_count=gv('ext_count');
+  var ext=ext_count*ext_unit*set_num;
+  var extEl=document.getElementById('ext_persons');
+  if(extEl) extEl.value=set_num;
+
+  var sset=ssets.reduce(function(a,x){return a+x.price*x.count},0);
+  var cast=lists.cast.reduce(function(a,x){return a+x.price*x.qty},0);
+  var order=lists.order.reduce(function(a,x){return a+x.price*x.qty},0);
+  var food=lists.food.reduce(function(a,x){return a+x.price*x.qty},0);
+  var cheki=lists.cheki.reduce(function(a,x){return a+x.price*x.qty},0);
+  var sr=gv('service_rate');
+  var tr=gv('tax_rate');
+
+  document.getElementById('set_subtotal').textContent=fmt(set);
+  document.getElementById('ext_subtotal').textContent=fmt(ext);
+
+  var sub=sset+set+shime+ext+cast+order+food+cheki;
+  var service=Math.round(sub*sr/100);
+  var afterSv=sub+service;
+  var tax=Math.round(afterSv*tr/100);
+  var grand=afterSv+tax;
+
+  var rsset=document.getElementById('r_sset');
+  rsset.querySelectorAll('span')[1].textContent=fmt(sset);
+  if(sset===0){rsset.classList.add('zero')}else{rsset.classList.remove('zero')}
+
+  var rset=document.getElementById('r_set');
+  rset.querySelector('span').textContent='セット料金（'+set_num+'名）';
+  rset.querySelectorAll('span')[1].textContent=fmt(set);
+  if(set===0){rset.classList.add('zero')}else{rset.classList.remove('zero')}
+
+  var rext=document.getElementById('r_ext');
+  rext.querySelector('span').textContent='延長料金（'+ext_count+'セット×'+set_num+'名）';
+  rext.querySelectorAll('span')[1].textContent=fmt(ext);
+  if(ext===0){rext.classList.add('zero')}else{rext.classList.remove('zero')}
+
+  setRow('r_shime',shime);
+  setRow('r_cast',cast);setRow('r_order',order);
+  setRow('r_cheki',cheki);setRow('r_food',food);
+  document.getElementById('t_sub').textContent=fmt(sub);
+  document.getElementById('t_service').textContent=fmt(service);
+  document.getElementById('t_tax').textContent=fmt(tax);
+  document.getElementById('t_grand').textContent=fmt(grand);
+  document.getElementById('sr_lbl').textContent=sr;
+  document.getElementById('tr_lbl').textContent=tr;
+}
+
+function clearAll(){
+  if(!confirm('入力内容をリセットしますか？'))return;
+  ssets=[];lists={cast:[],order:[],food:[],cheki:[]};
+  ['set_fee','shime_fee','ext_count'].forEach(function(id){document.getElementById(id).value=0});
+  document.getElementById('set_count').value=1;
+  document.getElementById('ext_unit').value=1000;
+  document.getElementById('service_rate').value=10;
+  document.getElementById('tax_rate').value=10;
+  renderSsets();render('cast');render('order');render('food');render('cheki');
+  calc();
+}
+
+calc();
+</script>
+</body>
+</html>
